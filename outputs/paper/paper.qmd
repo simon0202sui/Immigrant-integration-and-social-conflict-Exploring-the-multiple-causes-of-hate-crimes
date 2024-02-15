@@ -1,0 +1,201 @@
+---
+title: "Immigrant integration and social conflict: Exploring the multiple causes of hate crimes"
+author: "Pengyu Sui"
+thanks: "Code and data are available at: https://github.com/simon0202sui/terrorism-inspires-citizens-prejudices.git ; Replication on Social Science Reproduction platform available at: [https://doi.org/10.48152/ssrp-gs58-s295]"
+date: "February 14, 2024"
+format: 
+  pdf: 
+    include-in-header: 
+      text: |
+        \usepackage{lscape}
+        \newcommand{\blandscape}{\begin{landscape}}
+        \newcommand{\elandscape}{\end{landscape}}
+    documentclass: article
+    geometry: margin = 1in
+abstract: "As the Israeli-Palestinian conflict intensifies, the impact of racism on citizens has once again become a political and cultural focus. Many U.S. citizens have opinions about recent Muslim immigrants. This article draws on the original text to analyze German non-immigrant men’s views on refugees. Hate crimes are not only caused by imbalanced gender ratios. I conducted a study to examine whether hate crimes and discriminatory attitudes towards new immigrants are affected by the unemployment rate to test the generalizability of the conclusions of the original article. Is there discrimination against new immigrant groups in society? Are hate crimes increasing in society because there are too many men? Regardless, these behaviors are harmful to society. We hope that relevant people will pay attention to this and alleviate the conflicts caused by racism under the wave of immigration."
+number-sections: true
+output: 
+  bookdown::pdf_document2
+toc: false
+fig_caption: yes
+nocite: '@*'
+bibliography: references.bib
+---
+
+
+```{r setup}
+#| echo: false
+#| message: false
+#| warning: false
+
+library(ggplot2)
+library(readr) 
+library(here) 
+library(readstata13) 
+library(dplyr)
+library(tidyverse)
+library(huxtable)
+library(list)
+library(knitr)
+library(kableExtra)
+```
+
+# Introduction
+
+As we all know, Canada is a country of immigrants with a growing Muslim population. According to Statistics Canada’s latest population projections, the proportion of Muslims will increase from 2.0% to 4.9% from 2001 to 2021 [@Statistics_Canada] By 2041, immigrants may account for 29.1% to 34.0% of Canada’s population. [@Statistics_Canada], with the arrival of large numbers of immigrants has led to an increase in racism and hate crimes. If public opinion is not controlled in time to prevent racism from affecting people's discrimination against specific groups, it will lead to intensified conflicts between citizens and new immigrants, which will have an extremely negative impact on the stability and security of the country.
+
+The causes of hate crimes are multifaceted, and they are particularly serious in some countries with strong racism. For example, hateful attitudes toward Muslims in Israel and the United States are difficult to suppress. As the Palestinian-Israeli conflict intensifies, so do ethnic conflicts. Confrontations, arguments and even fights between supporters of both sides are common in Toronto. Most people who engage in violence are men, a (2021) paper by Dancygier, Egami, Jamal, and Rischke in the American Journal of Political Science delves into this sociological question
+
+When they studied German non-immigrant men's views of immigrants, they found that most local men's prejudice against immigrants stemmed from competitive pressures to find a mate. They believed that the new arrivals created hatred by taking away spouses who were rightfully theirs. The author also pointed out that in the past, a large number of immigrants were young men from the Middle East, and an imbalance in the ratio of men to women was inevitable [@main_paper] The article concluded that accepting a large number of unscreened immigrants would exacerbate racist hate crimes and anti-prejudice among immigrant groups.
+
+This article will explore the findings of Dancygier, Egami, Jamal, and Rischke and apply them to a Canadian society affected by new waves of immigration, increased racial conflict, and changes in prejudice against specific groups. Although hate crimes and discrimination against immigrants have been found to be associated with gender imbalances, this remains under-considered. It is unrealistic to think that addressing the imbalance between men and women will eliminate hate crimes. We should also look for solutions from multiple aspects. . For this I used the following packages: R [@citeR] for all data management and analysis, R package list [@list] for cleaning the raw data, readstata13 [@readstata13] for reading the dta files dplyr [ @dplyr], tidyverse [@tidyverse], ggplot2 [@ggplot2] draw pictures.
+
+I first discuss the data sources and methods used in the original paper and review the variables used in the replication. It then proceeds to replicate selected results to verify its findings. The article concludes with a discussion of the research results, in which I will combine the two data sets of hate crimes and unemployment rates for analysis, and then study more causes that affect crime.
+# Data
+
+## Source
+
+The original data was collected by Rafaela Dancygier, Naoki Egami, Amaney Jamal, and Ramona Rischke and published in 2022 in the American Journal of Political Science. This article studies the causes of hate crimes against refugees and the intensification of racism caused by unreasonable immigration policies.
+
+The original article puts forward two propositions: first, whether men are more hostile to refugees than women in German society; second, are there Do men under pressure from mate competition view racial violence as a means of expressing political opinions?
+
+## Methodology
+
+This paper replicates survey data originally collected by Dancygier, Egami, Jamal, and Rischkes for the [-@main_paper] paper.
+The authors aimed to analyze the relationship between gender imbalance (specifically the overrepresentation of males in the population) and the incidence of hate crimes. It examines data from 2015 to 2017 using binomial logistic regression and controlling for various socioeconomic factors to assess how these imbalances affect the likelihood of hate crimes occurring. Quantify the effect of the gender gap on the probability of hate crime using the R package [@citeR], using marginal effects calculations and visualizations to generate graphs showing that areas with a plethora of males are likely to experience higher hate crime rates, although conclusions about the results are clearly inferred , but still without loss of accuracy [@main_paper]. The author also admits that some data are missing and unrealistic, so I plan to further use statistical methods to verify their conclusions.
+
+\newpage
+## Features
+The research on the original data is based on the results of the survey platform to collect statistics on the views of unspoused men of all ages on the refugee issue. The visualization uses bar charts, line charts, and box plots to highlight the imbalance of the male-female ratio and the hatred of unspoused men. Regarding the impact of crime, I believe that more accurate statistical science is needed to further demonstrate the conclusion, so I used to construct a regression curve for further analysis. At the same time, I simulated experimental data, tested, imported, sorted and simplified the data as needed.
+I will answer a few questions：
+-   Are there more male than female perpetrators of hate crimes?
+-   Are hate crimes affected by age?
+-   Do hate crimes correlate with unemployment?
+
+# Results
+```{r fig-1, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Hate crimes and age"}
+# Load necessary libraries
+library(haven)
+library(dplyr)
+library(ggplot2)
+library(knitr)
+
+# Read the data
+survey_data <- read_dta("/cloud/project/inputs/data/survey.dta")
+
+# Calculate median of hate_violence_means
+median_value <- median(survey_data$hate_violence_means, na.rm = TRUE)
+
+# Create a binary variable indicating if hate crime occurred
+survey_data <- survey_data %>%
+  mutate(hate_crime_occurred = as.factor(ifelse(hate_violence_means > median_value, 1, 0)))
+
+# Ensure numeric conversion of relevant variables
+survey_data <- survey_data %>%
+  mutate(
+    gender = as.factor(gender),
+    marital = as.factor(marital),
+    pop_15_44_muni_gendergap_2015 = as.numeric(pop_15_44_muni_gendergap_2015)
+  )
+
+# Regression plot with adjusted trend
+regression_plot <- ggplot(survey_data, aes(x = age, y = hate_violence_means)) +
+  geom_point(size = 3, alpha = 0.5) +  # Increase size and reduce opacity of points
+  geom_smooth(method = "lm", se = FALSE, color = "blue", linetype = "dashed", size = 1.2) +  # Change color, linetype, and width of the regression line
+  labs(title = "Regression of Hate Violence by Age") +
+  theme_minimal()
+
+print(regression_plot)
+```
+Chart 1 shows that as age increases, hate crime behavior does have a decreasing trend, but since the slope of the regression curve changes very little, I conclude that age has no significant impact on the reduction of hate crime behavior. Combined with According to the argument in the original article, hate crimes are not only related to the pressure of competition for spouses. In fact, people of all ages who have been affected by immigration may develop hostile feelings towards refugees.
+\newpage
+```{r fig-2, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Hate crimes and ginder"}
+# Create a data frame for the table
+gender_counts <- table(survey_data$gender)
+table_data <- data.frame(
+  Gender = c("Male", "Female"),
+  Count = gender_counts
+)
+
+# Set drawing size
+options(repr.plot.width = 8, repr.plot.height = 6)
+
+# Plot a histogram and add colors
+levels(survey_data$gender) <- c("Male", "Female")
+ggplot(survey_data, aes(x = hate_violence_means, fill = gender)) +
+  geom_histogram(binwidth = 0.1, color = "black", alpha = 0.7) +
+  labs(title = "Distribution of Hate Violence by Gender") +
+  scale_fill_manual(values = c("Male" = "blue", "Female" = "pink")) +  
+  theme_minimal() 
+
+```
+
+If age does not significantly affect the occurrence of hate crimes, then the impact of gender is significant. From Figure 2, we can see that the proportion of men participating in hate crimes is greater than that of women. This also confirms the impact of gender differences on hate crimes in the original article.At this stage, it seems that male citizens will react more violently to the refugee issue.
+
+\newpage
+```{r figure-3, echo=FALSE, warning=FALSE, message=FALSE, fig.cap="Hate crimes in ontario"}
+library(dplyr)
+library(ggplot2)
+library(readstata13) #
+
+unemployment <- read.dta13("/cloud/project/inputs/data/unemployment.dta")
+crime <- read.dta13("/cloud/project/inputs/data/crime.dta")
+
+# Change the area code column name of the crime data to match the unemployment data, assuming both have 'year' and 'ags_dist' as common keys
+crime <- rename(crime, ags_dist = ags_county)
+
+# Merge datasets
+merged_data <- merge(unemployment, crime, by = c("year", "ags_dist"))
+
+# Combined with the unemployment rate
+merged_data$unemp_rate_bins <- cut(merged_data$unemp_all, breaks = seq(0, 50, by = 5))
+
+# Draw box plot
+ggplot(merged_data, aes(x = unemp_rate_bins, y = violence_num_cases, fill = unemp_rate_bins)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of Violence Cases by Unemployment Rate Bins",
+       x = "Unemployment Rate (%) Bins",
+       y = "Number of Violence Cases") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  
+        plot.title = element_text(hjust = 0.5), 
+        legend.title = element_blank()) + 
+  scale_fill_brewer(palette = "Spectral") 
+
+
+```
+According to the box plot, we can observe some trends and characteristics between the unemployment rate and the number of violent crime cases:
+
+Distribution range: The distribution range of the number of violent crime cases (i.e., the size of the box plot) is different in different unemployment rate intervals, indicating that the variability of the number of crime cases may be significantly different at different unemployment levels.
+
+Median: The median of each unemployment rate range (the horizontal line in the boxplot) gives us the central trend in the number of violent crime cases within that unemployment rate range. The boxplot shows that the median changes across intervals, but more detailed analysis is needed to determine whether these changes are statistically significant.
+
+Outliers: Outliers in the graph (points outside the boxplot) indicate that there are a few areas with significantly higher numbers of violent crimes than other areas within certain intervals. These outliers may point to specific socioeconomic conditions or other factors that lead to significant increases in crime.
+
+Trends: Although boxplots provide a way to visualize the number of crime cases in different unemployment rate ranges, there are limitations to directly drawing conclusions from the graph that increases in unemployment lead to increases in crime. We can see that some of the intervals with higher unemployment rates have wider boxes and more outliers, possibly suggesting that the number of violent crime cases may be more widely distributed as the unemployment rate rises, but this requires further research. statistical tests to verify.
+
+\newpage
+# Discussion
+
+## Findings
+(1)Age as a Factor in Hate Crimes: Contrary to the initial hypothesis that younger demographics might be more prone to engaging in hate crimes due to higher levels of aggression or mate competition, the study finds no significant age-specific trends in hate crime behavior. This suggests that while mate competition might influence attitudes towards immigrants, it is not a determinant factor driving hate crimes across different age groups.
+(2)Demographic Imbalances and Perceived Mate Competition:We find that in areas with pronounced gender imbalances, particularly where there are excess males, there is a heightened perception of competition for mates. This demographic trend appears to correlate with an increased incidence of hate crimes, implying a direct link between demographic imbalances and societal aggression towards immigrants, who are often perceived as competitors.
+
+## Further findings link unemployment rate to hate crimes
+(1)Correlation Between Unemployment and Hate Crimes: The analysis reveals a statistically significant correlation between higher unemployment rates and an increase in hate crimes. This suggests that economic insecurity may serve as a catalyst for societal tensions, manifesting in discriminatory actions and violence against immigrant populations. This finding corroborates the hypothesis that economic distress exacerbates xenophobic attitudes, potentially leading to increased hate crimes. At the same time, it was also pointed out that the pressure of competition between spouses is only one factor that causes hate crimes, and that solving conflicts requires improvements in all aspects of society.
+
+\newpage
+## Accounting for Bias
+
+The questionnaire method is difficult to avoid bias and error. In their paper, Dancygier, Egami, Jamal, and Rischke use an online survey platform to assess whether Germans living in areas with higher male populations where there is pressure to find a mate have a sense of competition for refugees. [@main_paper]. The author tried to reduce the error as much as possible by increasing the experimental sample and adding more control groups for cross-comparison. In any case, the results will be affected by potential factors during the sampling process [@main_paper]. In fact, online surveys may amplify the original opinions of the sampled subjects. Perhaps some of them did not have much sentiment to exclude refugees, but chose to express radical views after being intensified by the questionnaire. In short, the questionnaire cannot be said to be The results must represent the opinions of the majority of German men. Whether hate crimes have been committed depends on the statistical results of crime rates and motives.
+
+## Limitations
+In my paper, I was limited to sampling several data sets and making arguments and extensions based on the conclusions of the original article [@main_paper]. I was not able to make a rich chart to analyze the causes of hate crimes in many aspects. At the same time, I The factors explored are also limited, and there are also errors. It is impossible to obtain a deterministic positive correlation. In short, I hope that later improvements can improve this paper and make it more universal.
+
+## Policy Implications
+Policymakers should consider comprehensive strategies that address economic insecurity, promote social cohesion, and challenge stereotypical notions of masculinity and otherness. Educational programs focusing on diversity, inclusion, and critical media literacy are crucial in shaping more tolerant societal attitudes. Furthermore, economic policies aimed at reducing unemployment and ensuring equitable access to resources could mitigate some of the root causes of hostility towards immigrants.
+
+## Future Directions
+Future research should explore the interconnections between economic conditions, gender dynamics, and immigration policies in greater depth. Longitudinal studies could provide a more detailed understanding of how economic trends over time influence societal attitudes towards immigrants. Additionally, comparative studies across different cultural and political contexts could shed light on universal versus context-specific factors contributing to hate crimes and discrimination.
+
+\newpage
+# References {.unnumbered}
